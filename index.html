@@ -1,0 +1,1994 @@
+<!DOCTYPE html>
+<html lang="it">
+<head><meta charset="UTF-8">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Space+Grotesk:wght@400;500;600&display=swap">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PadelMatch</title>
+
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha384-sHL9NAb7lN7rfvG5lfHpm643Xkcjzp4jFvuavGOndn6pjVqS6ny56CAt3nsEVT4H"
+    crossorigin="anonymous"
+  >
+
+  <style>
+    :root {
+      --blue-dark: #102a43;
+      --blue: #1769e0;
+      --blue-light: #eaf3ff;
+      --green: #10b981;
+      --green-dark: #059669;
+      --red: #ef4444;
+      --orange: #f59e0b;
+      --text: #243b53;
+      --muted: #627d98;
+      --bg: #f4f7fa;
+      --card: #ffffff;
+      --border: #d9e2ec;
+      --input: #f8fafc;
+      --shadow: 0 10px 25px rgba(16, 42, 67, .1);
+      --chat-bg: #f1f5f9;
+      --chat-other: #ffffff;
+      --chat-me: #dcfce7;
+      --chat-me-text: #14532d;
+    }
+
+    body.dark-theme {
+      --blue-dark: #f1f5f9;
+      --blue: #60a5fa;
+      --blue-light: #1e3a5f;
+      --green: #10b981;
+      --green-dark: #059669;
+      --red: #f87171;
+      --orange: #fbbf24;
+      --text: #f1f5f9;
+      --muted: #a8b8ca;
+      --bg: #071426;
+      --card: #10243b;
+      --border: #29435e;
+      --input: #0b1b2e;
+      --shadow: 0 10px 28px rgba(0, 0, 0, .35);
+      --chat-bg: #0b1b2e;
+      --chat-other: #1e3a5f;
+      --chat-me: #065f46;
+      --chat-me-text: #ecfdf5;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      min-width: 320px;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(23, 105, 224, .15), transparent 35%),
+        var(--bg);
+      font-family: Arial, sans-serif;
+      transition: background .25s ease, color .25s ease;
+    }
+
+    header {
+      position: relative;
+      overflow: hidden;
+      padding: 62px 20px 80px;
+      text-align: center;
+      color: white;
+      background: linear-gradient(135deg, #082654, #1769e0);
+      border-radius: 0 0 34px 34px;
+      box-shadow: 0 15px 35px rgba(16, 42, 67, .3);
+    }
+
+    header::after {
+      content: "";
+      position: absolute;
+      width: 260px;
+      height: 260px;
+      right: -90px;
+      top: -100px;
+      border: 35px solid rgba(255, 255, 255, .12);
+      border-radius: 50%;
+    }
+
+    header h1,
+    header p,
+    .top-bar {
+      position: relative;
+      z-index: 1;
+    }
+
+    header h1 {
+      margin: 0 0 10px;
+      font-size: clamp(2.3rem, 7vw, 4.6rem);
+      letter-spacing: -2px;
+    }
+
+    header p {
+      margin: 0;
+      opacity: .9;
+      font-size: 1rem;
+    }
+
+    .top-bar {
+      position: absolute;
+      top: 16px;
+      right: 20px;
+    }
+
+    main {
+      position: relative;
+      z-index: 2;
+      width: min(1100px, calc(100% - 28px));
+      margin: -42px auto 50px;
+    }
+
+    section {
+      margin-bottom: 22px;
+      padding: 24px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      box-shadow: var(--shadow);
+    }
+
+    h2 {
+      margin: 0 0 18px;
+      color: var(--blue-dark);
+      font-size: 1.3rem;
+    }
+
+    .profile-head {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .avatar {
+      display: grid;
+      place-items: center;
+      width: 68px;
+      height: 68px;
+      flex-shrink: 0;
+      overflow: hidden;
+      border-radius: 50%;
+      color: white;
+      background: linear-gradient(135deg, #1769e0, #10b981);
+      font-size: 1.35rem;
+      font-weight: bold;
+    }
+
+    .avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .profile-head h3 {
+      margin: 0 0 5px;
+      color: var(--blue-dark);
+    }
+
+    .profile-head p {
+      margin: 0;
+      color: var(--muted);
+      font-size: .9rem;
+    }
+
+    .grid,
+    .profile-grid,
+    .filters {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 5px;
+      color: var(--muted);
+      font-size: .78rem;
+      font-weight: bold;
+    }
+
+    input,
+    select,
+    button {
+      width: 100%;
+      min-height: 44px;
+      padding: 10px 13px;
+      border-radius: 11px;
+      font: inherit;
+    }
+
+    input,
+    select {
+      color: var(--text);
+      background: var(--input);
+      border: 1px solid var(--border);
+      outline: none;
+    }
+
+    input:focus,
+    select:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(23, 105, 224, .18);
+    }
+
+    button {
+      border: 0;
+      color: white;
+      background: var(--green);
+      font-weight: bold;
+      cursor: pointer;
+      transition: transform .15s ease, background .15s ease;
+    }
+
+    button:hover {
+      background: var(--green-dark);
+      transform: translateY(-2px);
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: .5;
+      transform: none;
+    }
+
+    .theme-btn {
+      width: auto;
+      min-height: auto;
+      padding: 9px 14px;
+      color: white;
+      background: rgba(255, 255, 255, .18);
+      border: 1px solid rgba(255, 255, 255, .45);
+      border-radius: 22px;
+      font-size: .82rem;
+    }
+
+    .secondary {
+      color: var(--text);
+      background: var(--blue-light);
+      border: 1px solid var(--border);
+    }
+
+    .secondary:hover {
+      background: var(--blue-light);
+    }
+
+    .cancel,
+    .delete-button {
+      background: var(--red);
+    }
+
+    .cancel:hover,
+    .delete-button:hover {
+      background: #dc2626;
+    }
+
+    .edit-button {
+      color: white;
+      background: var(--orange);
+    }
+
+    .edit-button:hover {
+      background: #d97706;
+    }
+
+    .message {
+      min-height: 20px;
+      margin: 12px 0 0;
+      color: var(--green);
+      font-weight: bold;
+      font-size: .9rem;
+    }
+
+    .notification {
+      display: none;
+      position: fixed;
+      top: 18px;
+      left: 50%;
+      z-index: 1000;
+      width: min(430px, calc(100% - 28px));
+      padding: 14px 18px;
+      color: white;
+      background: var(--green-dark);
+      border-radius: 14px;
+      box-shadow: 0 12px 28px rgba(0, 0, 0, .3);
+      text-align: center;
+      transform: translateX(-50%);
+      animation: notificationIn .25s ease;
+    }
+
+    .notification.visible {
+      display: block;
+    }
+
+    @keyframes notificationIn {
+      from {
+        opacity: 0;
+        transform: translate(-50%, -15px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translate(-50%, 0);
+      }
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    .stat-box {
+      padding: 16px 10px;
+      text-align: center;
+      background: var(--blue-light);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+    }
+
+    .stat-number {
+      display: block;
+      color: var(--blue);
+      font-size: 1.5rem;
+      font-weight: bold;
+    }
+
+    .stat-label {
+      color: var(--muted);
+      font-size: .78rem;
+    }
+
+    .matches {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .match-card {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      padding: 20px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      box-shadow: 0 7px 18px rgba(16, 42, 67, .08);
+    }
+
+    .match-card h3 {
+      margin: 0 0 8px;
+      color: var(--blue-dark);
+      font-size: 1.15rem;
+    }
+
+    .match-card p {
+      margin: 6px 0;
+      color: var(--muted);
+      font-size: .9rem;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 5px 9px;
+      color: #9a6700;
+      background: #fff3c4;
+      border-radius: 7px;
+      font-size: .75rem;
+      font-weight: bold;
+    }
+
+    .full {
+      color: var(--red) !important;
+      font-weight: bold;
+    }
+
+    .creator-label {
+      display: inline-block;
+      margin-top: 8px;
+      padding: 5px 8px;
+      color: var(--blue);
+      background: var(--blue-light);
+      border-radius: 7px;
+      font-size: .74rem;
+      font-weight: bold;
+    }
+
+    .actions-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 4px;
+    }
+
+    .manage-row {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+
+    .chat-toggle-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      color: white;
+      background: #3b82f6;
+      font-size: .9rem;
+    }
+
+    .chat-toggle-btn:hover {
+      background: #2563eb;
+    }
+
+    .chat-count-pill {
+      padding: 2px 7px;
+      color: white;
+      background: rgba(255, 255, 255, .3);
+      border-radius: 12px;
+      font-size: .75rem;
+    }
+
+    .chat-box {
+      display: none;
+      margin-top: 8px;
+      padding: 14px;
+      background: var(--chat-bg);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+    }
+
+    .chat-box.visible {
+      display: block;
+    }
+
+    .chat-header {
+      margin-bottom: 10px;
+      color: var(--muted);
+      font-size: .8rem;
+      font-weight: bold;
+      letter-spacing: .5px;
+      text-transform: uppercase;
+    }
+
+    .chat-messages {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 180px;
+      overflow-y: auto;
+      margin-bottom: 12px;
+      padding-right: 4px;
+    }
+
+    .chat-bubble {
+      max-width: 85%;
+      padding: 8px 12px;
+      border-radius: 12px;
+      font-size: .85rem;
+      line-height: 1.35;
+      overflow-wrap: anywhere;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, .08);
+    }
+
+    .chat-bubble.other {
+      align-self: flex-start;
+      color: var(--text);
+      background: var(--chat-other);
+      border: 1px solid var(--border);
+      border-bottom-left-radius: 2px;
+    }
+
+    .chat-bubble.me {
+      align-self: flex-end;
+      color: var(--chat-me-text);
+      background: var(--chat-me);
+      border-bottom-right-radius: 2px;
+    }
+
+    .chat-author {
+      display: block;
+      margin-bottom: 2px;
+      font-size: .72rem;
+      font-weight: 800;
+      opacity: .85;
+    }
+
+    .chat-empty {
+      padding: 12px 0;
+      color: var(--muted);
+      font-size: .82rem;
+      text-align: center;
+    }
+
+    .chat-form {
+      display: flex;
+      gap: 8px;
+    }
+
+    .chat-form input {
+      flex: 1;
+      min-width: 0;
+      min-height: 40px;
+      height: 40px;
+      font-size: .88rem;
+    }
+
+    .chat-form button {
+      width: auto;
+      min-height: 40px;
+      height: 40px;
+      padding: 0 16px;
+      white-space: nowrap;
+      font-size: .88rem;
+    }
+
+    .map-area {
+      display: none;
+      margin-top: 8px;
+      overflow: hidden;
+      background: var(--input);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+    }
+
+    .map-area.visible {
+      display: block;
+    }
+
+    .map-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px 14px;
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .map-title {
+      margin: 0;
+      color: var(--blue-dark);
+      font-size: .88rem;
+      font-weight: bold;
+    }
+
+    .map-address {
+      margin: 2px 0 0;
+      color: var(--muted);
+      font-size: .78rem;
+    }
+
+    .map-close {
+      width: auto;
+      min-height: 32px;
+      padding: 6px 12px;
+      color: var(--text);
+      background: var(--blue-light);
+      font-size: .78rem;
+    }
+
+    .custom-leaflet-map {
+      width: 100%;
+      height: 280px;
+      background: #e5e7eb;
+      z-index: 1;
+    }
+
+    .participants {
+      padding: 10px 12px;
+      background: var(--blue-light);
+      border: 1px solid var(--border);
+      border-radius: 11px;
+      color: var(--muted);
+      font-size: .8rem;
+    }
+
+    .share-btn {
+      margin-top: 8px;
+      color: var(--text);
+      background: var(--blue-light);
+      border: 1px solid var(--border);
+    }
+
+    .share-btn:hover {
+      background: var(--blue-light);
+    }
+
+    .photo-actions {
+      display: flex;
+      align-items: end;
+      gap: 8px;
+    }
+
+    .photo-actions input {
+      flex: 1;
+    }
+
+    .remove-photo {
+      width: auto;
+      min-height: 44px;
+      padding: 10px 13px;
+      background: var(--red);
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 900;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      background: rgba(0, 0, 0, .62);
+    }
+
+    .modal.visible {
+      display: flex;
+    }
+
+    .modal-content {
+      width: min(620px, 100%);
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 24px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, .35);
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .modal-header h2 {
+      margin: 0;
+    }
+
+    .close-modal {
+      width: auto;
+      min-height: 36px;
+      padding: 7px 12px;
+      color: var(--text);
+      background: var(--blue-light);
+    }
+
+    .modal-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    @media (max-width: 700px) {
+      .grid,
+      .profile-grid,
+      .filters,
+      .matches {
+        grid-template-columns: 1fr;
+      }
+
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .actions-row,
+      .manage-row,
+      .modal-actions {
+        grid-template-columns: 1fr;
+      }
+
+      .photo-actions {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .remove-photo {
+        width: 100%;
+      }
+    }
+/* Campi data e ora base: Tema Chiaro */
+input[type="date"],
+input[type="time"] {
+  color-scheme: light;
+  background-color: rgba(0, 0, 0, 0.04);
+  color: #1e293b;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 12px;
+  padding: 12px 14px;
+  font: inherit;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Evidenziazione al click */
+input[type="date"]:focus,
+input[type="time"]:focus {
+  outline: none;
+  border-color: #38bdf8;
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+}
+
+/* Tema Scuro (copre tutte le possibili classi di attivazione) */
+body.dark input[type="date"],
+body.dark input[type="time"],
+body.dark-mode input[type="date"],
+body.dark-mode input[type="time"],
+body.dark-theme input[type="date"],
+body.dark-theme input[type="time"],
+[data-theme="dark"] input[type="date"],
+[data-theme="dark"] input[type="time"],
+.dark input[type="date"],
+.dark input[type="time"] {
+  color-scheme: dark;
+  background-color: rgba(255, 255, 255, 0.07);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+/* Icona calendario/orologio */
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  filter: opacity(0.6);
+}
+
+body.dark input[type="date"]::-webkit-calendar-picker-indicator,
+body.dark input[type="time"]::-webkit-calendar-picker-indicator,
+body.dark-mode input[type="date"]::-webkit-calendar-picker-indicator,
+body.dark-mode input[type="time"]::-webkit-calendar-picker-indicator,
+body.dark-theme input[type="date"]::-webkit-calendar-picker-indicator,
+body.dark-theme input[type="time"]::-webkit-calendar-picker-indicator,
+[data-theme="dark"] input[type="date"]::-webkit-calendar-picker-indicator,
+[data-theme="dark"] input[type="time"]::-webkit-calendar-picker-indicator,
+.dark input[type="date"]::-webkit-calendar-picker-indicator,
+.dark input[type="time"]::-webkit-calendar-picker-indicator {
+  filter: invert(1) opacity(0.85);
+}
+
+/* Schermata iniziale */
+.auth-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background:
+    radial-gradient(circle at top left, rgba(23, 105, 224, .35), transparent 45%),
+    var(--bg);
+}
+
+.auth-card {
+  width: min(100%, 430px);
+  padding: 32px;
+  text-align: center;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  box-shadow: var(--shadow);
+}
+
+.auth-logo {
+  font-size: 3rem;
+  margin-bottom: 8px;
+}
+
+.auth-card h1 {
+  margin: 0;
+  color: var(--blue-dark);
+  font-size: 2rem;
+}
+
+.auth-subtitle {
+  margin: 8px 0 24px;
+  color: var(--muted);
+}
+
+.auth-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 22px;
+}
+
+.auth-tab {
+  min-height: 42px;
+  color: var(--text);
+  background: var(--input);
+  border: 1px solid var(--border);
+}
+
+.auth-tab.active {
+  color: white;
+  background: var(--blue);
+  border-color: var(--blue);
+}
+
+.auth-form {
+  text-align: left;
+}
+
+.auth-form label {
+  display: block;
+  margin: 12px 0 6px;
+  color: var(--muted);
+  font-weight: bold;
+}
+
+.auth-form input {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.auth-form button[type="submit"] {
+  width: 100%;
+  margin-top: 20px;
+}
+
+.auth-message {
+  min-height: 22px;
+  margin: 16px 0 0;
+  color: var(--red);
+  font-weight: bold;
+}
+
+/* Gestione schede */
+.app-tab {
+  display: none;
+}
+
+.app-tab.tab-active {
+  display: block;
+}
+
+/* Spazio in fondo per non coprire i contenuti con la barra */
+main {
+  padding-bottom: 90px !important;
+}
+
+/* Barra fissa inferiore */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 68px;
+  background: var(--card);
+  border-top: 1px solid var(--border);
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(10px);
+}
+
+.nav-item {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 6px 12px;
+  cursor: pointer;
+  color: var(--muted);
+  min-height: auto !important;
+  width: auto !important;
+  transition: transform 0.15s ease, color 0.15s ease;
+}
+
+.nav-item:hover {
+  transform: translateY(-2px);
+}
+
+.nav-icon {
+  font-size: 1.35rem;
+}
+
+.nav-label {
+  font-size: 0.72rem;
+  font-weight: bold;
+}
+
+.nav-item.active {
+  color: var(--blue) !important;
+}
+
+.nav-item.active .nav-icon {
+  transform: scale(1.1);
+}
+
+/* Stile Profilo Knowunity */
+.know-profile-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  padding: 24px;
+  text-align: center;
+  box-shadow: var(--shadow);
+  margin-bottom: 24px;
+}
+
+.know-avatar-wrap {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 14px;
+}
+
+.know-avatar-wrap .avatar {
+  width: 100%;
+  height: 100%;
+}
+
+.know-avatar-edit {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 0.85rem;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+
+.know-name-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.know-name {
+  margin: 0;
+  font-size: 1.4rem;
+  color: var(--blue-dark);
+}
+
+.badge-pro {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: white;
+  font-size: 0.7rem;
+  font-weight: bold;
+  padding: 3px 8px;
+  border-radius: 8px;
+  font-style: italic;
+}
+
+.know-handle {
+  margin: 4px 0 16px;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.know-badges-row {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.know-pill {
+  background: var(--input);
+  border: 1px solid var(--border);
+  padding: 8px 14px;
+  border-radius: 20px;
+  font-size: 0.82rem;
+  font-weight: bold;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.know-section-title {
+  font-size: 0.75rem;
+  font-weight: bold;
+  color: var(--muted);
+  margin: 20px 0 8px 6px;
+  letter-spacing: 0.5px;
+}
+
+.know-menu-group {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 16px;
+  box-shadow: var(--shadow);
+}
+
+.know-form-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+.know-menu-item {
+  width: 100% !important;
+  background: transparent !important;
+  border: none !important;
+  padding: 12px 6px !important;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  color: var(--text) !important;
+  border-radius: 12px;
+}
+
+.know-menu-item:hover {
+  background: var(--input) !important;
+}
+
+.know-item-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.know-item-arrow {
+  font-size: 1.4rem;
+  color: var(--muted);
+}
+
+.know-menu-item.logout {
+  color: var(--red) !important;
+}
+
+/* Stile Reels / TikTok rifinito */
+.tiktok-container {
+  max-width: 380px !important;
+  height: 620px !important;
+  margin: 20px auto !important;
+  position: relative;
+  padding: 0 !important;
+  border-radius: 28px;
+  overflow: hidden;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
+  background: #000;
+  border: 4px solid #1e293b;
+}
+
+.tiktok-feed {
+  width: 100%;
+  height: 100%;
+  overflow-y: scroll;
+  scroll-snap-type: y mandatory;
+  background: #000;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.tiktok-feed::-webkit-scrollbar {
+  display: none;
+}
+
+.tiktok-card {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  scroll-snap-align: start;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #0b111e;
+}
+
+.tiktok-card video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.tiktok-video-placeholder {
+  color: #fff;
+  text-align: center;
+  padding: 24px;
+}
+
+.tiktok-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 16px;
+  background: linear-gradient(to top, rgba(0,0,0,0.85), transparent);
+  color: #fff;
+  pointer-events: none;
+}
+
+.tiktok-info h3 {
+  font-size: 0.95rem;
+  margin: 0 0 4px 0;
+  color: #00e676;
+}
+
+.tiktok-info p {
+  font-size: 0.85rem;
+  margin: 0;
+  color: #eee;
+}
+
+.tiktok-upload-btn {
+  position: absolute !important;
+  top: 14px !important;
+  right: 14px !important;
+  width: auto !important;
+  display: inline-flex !important;
+  align-items: center;
+  gap: 6px;
+  z-index: 30;
+  background: #00e676 !important;
+  color: #000 !important;
+  border: none !important;
+  font-weight: 700;
+  font-size: 0.8rem;
+  padding: 8px 14px !important;
+  border-radius: 20px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+/* Azioni laterali stile Reels / TikTok */
+.tiktok-actions {
+  position: absolute;
+  right: 12px;
+  bottom: 80px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  z-index: 20;
+}
+
+.tiktok-action-btn {
+  background: rgba(255, 255, 255, 0.15) !important;
+  backdrop-filter: blur(5px);
+  border: none !important;
+  width: 44px !important;
+  height: 44px !important;
+  padding: 0 !important;
+  border-radius: 50% !important;
+  display: flex !important;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #fff !important;
+  font-size: 1.1rem;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+
+
+
+
+  
+/* ===== Restyling: campo da padel + pallina fluo ===== */
+:root { --lime:#c8f542; --lime-dark:#b3e02a; --court:#0a2342; --r:16px; }
+body { font-family:"Barlow",system-ui,Arial,sans-serif; }
+h1,h2,h3,.nav-label,.stat-number,.chat-header,.know-name,button { font-family:"Barlow Condensed","Barlow",Arial,sans-serif; }
+h2 { font-size:1.7rem; font-weight:700; letter-spacing:.01em; }
+button { font-size:1.05rem; font-weight:700; letter-spacing:.02em; }
+:focus-visible { outline:3px solid var(--blue); outline-offset:2px; }
+
+/* Header: un campo visto dall'alto */
+header { background:linear-gradient(180deg,#1668d6,#0b3f8c); border-radius:0 0 28px 28px; }
+header::after { display:none; }
+header::before { content:""; position:absolute; inset:14px 14px 26px; pointer-events:none;
+  border:2px solid rgba(255,255,255,.3); border-radius:6px;
+  background:
+    linear-gradient(rgba(255,255,255,.3),rgba(255,255,255,.3)) 50% 0/2px 100% no-repeat,
+    linear-gradient(rgba(255,255,255,.3),rgba(255,255,255,.3)) 0 24%/100% 2px no-repeat,
+    linear-gradient(rgba(255,255,255,.3),rgba(255,255,255,.3)) 0 76%/100% 2px no-repeat; }
+header h1 span { font-family:"Barlow Condensed",Arial,sans-serif; font-style:italic; font-weight:700; letter-spacing:.01em; }
+header p { font-size:1.05rem; }
+
+section { border-radius:20px; box-shadow:0 8px 24px rgba(10,35,66,.08); }
+
+/* Pulsanti principali: pallina fluo */
+#matchForm button[type=submit], #profileForm button[type=submit], #editForm button[type=submit],
+.auth-form button[type=submit], .chat-form button, .actions-row > button:first-child:not(.cancel) {
+  background:var(--lime); color:var(--court); }
+#matchForm button[type=submit]:hover, #profileForm button[type=submit]:hover, #editForm button[type=submit]:hover,
+.auth-form button[type=submit]:hover, .chat-form button:hover, .actions-row > button:first-child:not(.cancel):hover {
+  background:var(--lime-dark); }
+.auth-card h1 { font-family:"Barlow Condensed",Arial,sans-serif; font-style:italic; font-size:2.8rem; }
+
+/* Schede partita: il colore a sinistra indica il livello */
+.match-card { border-left:6px solid var(--lvl,var(--blue)); border-radius:var(--r); padding:20px 20px 18px; }
+.match-card.lvl-Principiante { --lvl:#22c55e; }
+.match-card.lvl-Intermedio { --lvl:#1d6fe0; }
+.match-card.lvl-Avanzato { --lvl:#f97316; }
+.match-card h3 { font-size:1.6rem; line-height:1.1; }
+.match-card h3 + p { color:var(--text); font-weight:600; font-size:1.02rem; }
+.badge.lvl-Principiante { background:rgba(34,197,94,.16); color:#15803d; }
+.badge.lvl-Intermedio { background:rgba(29,111,224,.14); color:#1d5fd1; }
+.badge.lvl-Avanzato { background:rgba(249,115,22,.16); color:#c2410c; }
+body.dark-theme .badge.lvl-Principiante { color:#4ade80; }
+body.dark-theme .badge.lvl-Intermedio { color:#93c5fd; }
+body.dark-theme .badge.lvl-Avanzato { color:#fdba74; }
+
+/* Posti: una pallina per ogni giocatore */
+.dots { display:inline-flex; gap:5px; margin-left:10px; vertical-align:middle; }
+.dot { width:13px; height:13px; border-radius:50%; border:2px solid var(--muted); opacity:.7; }
+.dot.on { background:var(--lime); border-color:#86ad00; opacity:1; }
+
+/* Barra in basso: pillola flottante */
+main { padding-bottom:120px !important; }
+.bottom-nav { left:50%; right:auto; transform:translateX(-50%); width:min(94%,520px); bottom:12px; height:64px;
+  border:1px solid var(--border); border-radius:999px; padding:0 8px; box-shadow:0 10px 30px rgba(10,35,66,.22); }
+.nav-item { border-radius:999px !important; padding:6px 14px !important; }
+.nav-item.active { background:var(--lime) !important; color:var(--court) !important; }
+.nav-item.active .nav-icon { transform:none; }
+.nav-label { font-size:.85rem; }
+
+@media (prefers-reduced-motion: reduce) { * { animation:none !important; transition:none !important; scroll-behavior:auto !important; } }
+
+/* ===== Restyling futuristico ===== */
+:root { --lime:#0a74e0; --lime-dark:#075fc0; --on-accent:#fff; --bar:rgba(234,241,251,.82); --grid:rgba(10,80,170,.07); --glow:rgba(10,116,224,.22);
+  --bg:#eaf1fb; --card:rgba(255,255,255,.82); --border:rgba(20,80,160,.16); --input:rgba(255,255,255,.75); --text:#0b1f3a; --muted:#5a7394;
+  --blue:#0a74e0; --blue-light:rgba(10,116,224,.09); --blue-dark:#08234a; --chat-bg:rgba(10,116,224,.06); --chat-other:#fff; --chat-me:#d7f0ff; --chat-me-text:#06384f;
+  --shadow:0 12px 36px rgba(10,50,110,.12); }
+body.dark-theme { --lime:#2fd8ff; --lime-dark:#18bfe8; --on-accent:#03111f; --bar:rgba(5,10,24,.74); --grid:rgba(120,190,255,.055); --glow:rgba(47,216,255,.3);
+  --bg:#050a18; --card:rgba(13,25,50,.72); --border:rgba(110,190,255,.18); --input:rgba(6,14,32,.72); --text:#e6f0ff; --muted:#8fa6c7;
+  --blue:#38d9ff; --blue-light:rgba(56,217,255,.1); --blue-dark:#f4f9ff; --chat-bg:rgba(6,14,32,.6); --chat-other:rgba(56,217,255,.08); --chat-me:rgba(47,216,255,.2); --chat-me-text:#dcf8ff;
+  --shadow:0 20px 50px rgba(0,0,0,.45); }
+
+body { font-family:"Space Grotesk",system-ui,Arial,sans-serif; background:
+  radial-gradient(ellipse 70% 40% at 50% -5%,var(--glow),transparent 70%),
+  var(--bg); background-attachment:fixed; }
+h1,h2,h3,.nav-label,.stat-number,.chat-header,.know-name,button { font-family:"Chakra Petch","Space Grotesk",Arial,sans-serif; }
+h2 { font-size:1.3rem; font-weight:600; letter-spacing:.02em; }
+button { font-size:.98rem; font-weight:600; letter-spacing:.03em; }
+input:focus, select:focus { border-color:var(--blue); box-shadow:0 0 0 3px var(--glow); }
+
+/* Testata: barra sottile e fissa */
+header { position:sticky; top:0; z-index:60; display:flex; align-items:center; gap:18px; padding:12px 24px; overflow:visible;
+  text-align:left; color:var(--text); background:var(--bar); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+  border-radius:0; border-bottom:1px solid var(--border); box-shadow:none; }
+header::before, header::after { display:none; }
+header h1 { order:1; justify-content:flex-start !important; margin:0 !important; font-size:1.5rem !important; color:var(--blue-dark) !important; }
+header h1 svg { width:38px; height:38px; }
+header h1 span { font-style:normal; font-weight:700; letter-spacing:.01em; }
+body.dark-theme header h1 span { text-shadow:0 0 18px var(--glow); }
+header p { order:2; flex:1; margin:0; opacity:1; font-size:.85rem; color:var(--muted); }
+.top-bar { order:3; position:static; }
+.theme-btn { color:var(--text); background:var(--blue-light); border:1px solid var(--border); border-radius:12px; }
+main { margin:28px auto 0; }
+
+/* Pannelli di vetro */
+section { position:relative; background:var(--card); border:1px solid var(--border); border-radius:18px;
+  backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); box-shadow:var(--shadow); }
+section::before { content:""; position:absolute; left:24px; right:24px; top:-1px; height:1px; pointer-events:none;
+  background:linear-gradient(90deg,transparent,var(--blue),transparent); opacity:.7; }
+.know-profile-card, .know-menu-group { background:var(--input); box-shadow:none; }
+.modal-content { background:var(--bg); }
+.auth-card { backdrop-filter:blur(14px); }
+.auth-card h1 { font-style:normal; font-size:2.4rem; }
+
+/* Pulsanti principali */
+.auth-form button[type=submit], #matchForm button[type=submit], #profileForm button[type=submit], #editForm button[type=submit], .chat-form button, .actions-row > button:first-child:not(.cancel) { background:var(--lime); color:var(--on-accent); box-shadow:0 0 18px var(--glow); }
+.auth-form button[type=submit]:hover, #matchForm button[type=submit]:hover, #profileForm button[type=submit]:hover, #editForm button[type=submit]:hover, .chat-form button:hover, .actions-row > button:first-child:not(.cancel):hover { background:var(--lime-dark); }
+.remove-photo { background:transparent; border:1px solid var(--red); color:var(--red); }
+.remove-photo:hover { background:var(--red); color:#fff; }
+
+/* Schede partita */
+.match-card { background:linear-gradient(180deg,var(--blue-light),transparent 55%),var(--input); border:1px solid var(--border);
+  border-left:4px solid var(--lvl,var(--blue)); border-radius:14px; box-shadow:none; }
+.match-card h3 { font-size:1.35rem; font-weight:600; }
+.match-card h3 + p { font-family:"Chakra Petch",Arial,sans-serif; font-weight:600; font-size:1rem; letter-spacing:.03em; color:var(--blue); }
+.participants { background:transparent; }
+.dot.on { background:#c8f542; border-color:#c8f542; opacity:1; box-shadow:0 0 8px rgba(200,245,66,.6); }
+
+/* Barra in basso */
+.bottom-nav { width:min(94%,560px); height:66px; bottom:14px; padding:0; border-radius:20px; overflow:hidden;
+  background:var(--bar); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); border:1px solid var(--border); box-shadow:var(--shadow); }
+.nav-item { position:relative; flex:1; height:100%; padding:6px 4px !important; border-radius:0 !important; width:auto !important; }
+.nav-item::after { content:""; position:absolute; top:0; left:28%; right:28%; height:2px; border-radius:2px; background:var(--blue);
+  box-shadow:0 0 12px var(--blue); transform:scaleX(0); transition:transform .28s ease; }
+.nav-item.active { background:transparent !important; color:var(--blue) !important; }
+.nav-item.active::after { transform:scaleX(1); }
+.nav-item.active .nav-icon { transform:none; filter:drop-shadow(0 0 6px var(--blue)); }
+.nav-icon { display:flex; transition:filter .25s ease; }
+.nav-label { font-size:.78rem; font-weight:600; }
+
+/* Cambio scheda: sale dal basso */
+@keyframes tabIn { from { opacity:0; transform:translateY(28px); } to { opacity:1; transform:translateY(0); } }
+.app-tab.tab-active { animation:tabIn .38s cubic-bezier(.22,.9,.3,1); }
+
+@media (max-width:700px) { header p { display:none; } header { padding:10px 16px; } }
+
+/* Contenuto centrato in verticale tra testata e barra in basso */
+main { display:flex; flex-direction:column; justify-content:center; margin:0 auto;
+  min-height:calc(100vh - 64px); min-height:calc(100dvh - 64px); padding-top:24px; padding-bottom:100px !important; }
+
+/* ===== Mappa in popup ===== */
+.map-modal { display:none; position:fixed; inset:0; z-index:1100; align-items:center; justify-content:center; padding:18px;
+  background:rgba(2,8,20,.62); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px); }
+.map-modal.visible { display:flex; animation:mmFade .22s ease; }
+.map-modal-panel { width:min(760px,100%); height:min(620px,86vh); display:flex; flex-direction:column; overflow:hidden;
+  background:var(--bg); border:1px solid var(--border); border-radius:22px; box-shadow:0 30px 80px rgba(0,0,0,.55);
+  animation:mmPop .32s cubic-bezier(.22,.9,.3,1); }
+.map-modal-head { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:16px 20px; border-bottom:1px solid var(--border); }
+.map-modal-head h3 { margin:0; font-size:1.3rem; color:var(--blue-dark); }
+.map-modal-head p { margin:3px 0 0; font-size:.88rem; color:var(--muted); }
+.map-modal-close { flex-shrink:0; width:38px; min-height:38px; height:38px; padding:0; display:grid; place-items:center;
+  border-radius:12px; color:var(--text); background:var(--blue-light); border:1px solid var(--border); }
+.map-modal-close:hover { background:var(--blue-light); color:var(--blue); transform:none; }
+#popupMap { flex:1; min-height:0; background:var(--bg); }
+.map-modal-foot { padding:12px 16px; border-top:1px solid var(--border); }
+.map-directions { display:block; padding:12px; text-align:center; text-decoration:none; font-family:"Chakra Petch",Arial,sans-serif;
+  font-weight:600; letter-spacing:.03em; border-radius:12px; color:var(--on-accent); background:var(--lime); box-shadow:0 0 18px var(--glow); }
+.map-directions:hover { background:var(--lime-dark); }
+.pm-pin { position:relative; width:22px; height:22px; border-radius:50%; background:#c8f542; border:3px solid #fff; box-shadow:0 0 18px rgba(200,245,66,.9); }
+.pm-pin::after { content:""; position:absolute; inset:-3px; border-radius:50%; border:2px solid #c8f542; animation:pmPulse 1.8s ease-out infinite; }
+.leaflet-bar { border:none !important; box-shadow:var(--shadow) !important; }
+.leaflet-bar a { width:36px !important; height:36px !important; line-height:36px !important; background:var(--bar) !important;
+  color:var(--text) !important; border:1px solid var(--border) !important; backdrop-filter:blur(10px); }
+.leaflet-bar a:first-child { border-radius:12px 12px 0 0 !important; }
+.leaflet-bar a:last-child { border-radius:0 0 12px 12px !important; }
+.leaflet-control-attribution { background:var(--bar) !important; color:var(--muted) !important; border-radius:8px 0 0 0; }
+.leaflet-control-attribution a { color:var(--blue) !important; }
+@keyframes mmFade { from { opacity:0; } to { opacity:1; } }
+@keyframes mmPop { from { opacity:0; transform:translateY(18px) scale(.97); } to { opacity:1; transform:none; } }
+@keyframes pmPulse { from { transform:scale(1); opacity:.9; } to { transform:scale(3); opacity:0; } }
+
+body.dark-theme #popupMap .leaflet-tile-pane { filter:brightness(.78) contrast(1.05) saturate(1.15); }
+
+/* Mappa: riquadro arrotondato e pulito */
+.map-modal-head { border-bottom:none; }
+.map-modal-foot { border-top:none; padding:14px 16px; }
+#popupMap { margin:0 14px; border-radius:16px; border:1px solid var(--border); }
+.leaflet-control-attribution { font-size:10px !important; padding:2px 8px !important; opacity:.55; border-radius:0 8px 0 0 !important; }
+.pm-wrap { position:relative; }
+.pm-label { position:absolute; left:32px; top:50%; transform:translateY(-50%); white-space:nowrap; padding:6px 12px; border-radius:10px;
+  font-family:"Chakra Petch",Arial,sans-serif; font-weight:600; font-size:.85rem; color:var(--text);
+  background:var(--bg); border:1px solid var(--border); box-shadow:var(--shadow); }
+
+/* ---------- Nuove funzioni: disponibilità, per te, valutazioni ---------- */
+.hint { margin:0 0 12px; color:var(--muted); font-size:.92rem; line-height:1.45; }
+
+.avail-grid { display:grid; grid-template-columns:44px repeat(3, 1fr); gap:6px; align-items:center; }
+.avail-head { font-size:.78rem; color:var(--muted); text-align:center; }
+.avail-day { font-size:.88rem; font-weight:600; color:var(--text); }
+.avail-cell { height:38px; padding:0; margin:0; border-radius:10px; background:var(--card); color:var(--blue);
+  border:1.5px dashed var(--border); box-shadow:none; font-size:1rem; }
+.avail-cell:hover { transform:none; border-color:var(--blue); background:var(--card); }
+.avail-cell.on { background:var(--blue); color:#fff; border:1.5px solid var(--blue); }
+body.dark-theme .avail-cell.on { color:#071426; }
+
+.for-you { margin-bottom:22px; }
+.for-you h2 { margin-bottom:10px; }
+.for-you-item { display:flex; flex-direction:column; align-items:flex-start; gap:3px; width:100%; margin:0 0 8px;
+  padding:12px 14px; text-align:left; background:var(--blue-light); color:var(--text); border:1px solid var(--border);
+  border-left:4px solid var(--green); border-radius:12px; box-shadow:none; }
+.for-you-item:hover { transform:none; border-color:var(--green); background:var(--blue-light); }
+.for-you-item strong { font-size:1rem; color:var(--blue-dark); }
+.for-you-item span { font-family:"Space Grotesk",Arial,sans-serif; font-weight:400; font-size:.88rem; color:var(--muted); letter-spacing:0; }
+
+.urgent-banner { margin:-6px 0 12px; padding:7px 12px; border-radius:10px; background:var(--orange); color:#3b2300;
+  font-weight:700; font-size:.92rem; display:inline-block; }
+.urgent-button { background:transparent; color:var(--orange); border:1.5px solid var(--orange); box-shadow:none; }
+.urgent-button:hover { background:rgba(245,158,11,.12); transform:none; }
+.urgent-button.on { background:var(--orange); color:#3b2300; }
+
+.badge.mood-badge, .badge.side-badge { margin-left:6px; background:var(--card); color:var(--text); border:1px solid var(--border); }
+.badge.side-badge { border-color:var(--green); color:var(--green-dark); }
+body.dark-theme .badge.side-badge { color:#6ee7b7; }
+
+.player-chip { display:inline-flex; align-items:center; gap:5px; margin:3px 6px 3px 0; padding:3px 9px; border-radius:999px;
+  background:var(--card); border:1px solid var(--border); font-size:.88rem; }
+.rel-tag { font-size:.72rem; padding:1px 6px; border-radius:999px; }
+.rel-tag.ok { background:rgba(16,185,129,.16); color:var(--green-dark); }
+.rel-tag.warn { background:rgba(239,68,68,.14); color:var(--red); }
+
+.match-card.flash { outline:3px solid var(--green); outline-offset:3px; transition:outline-color .3s; }
+
+.fb-match { padding:12px 0; border-top:1px solid var(--border); }
+.fb-match:first-child { border-top:none; padding-top:0; }
+.fb-row { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin-top:10px; }
+.fb-name { min-width:90px; font-weight:600; }
+.fb-group { display:flex; flex-wrap:wrap; gap:4px; }
+.fb-opt { margin:0; padding:6px 10px; font-size:.82rem; border-radius:999px; background:var(--card); color:var(--text);
+  border:1px solid var(--border); box-shadow:none; }
+.fb-opt:hover { transform:none; border-color:var(--blue); background:var(--card); }
+.fb-opt.on { background:var(--blue); border-color:var(--blue); color:#fff; }
+body.dark-theme .fb-opt.on { color:#071426; }
+
+.avail-cell:focus-visible, .fb-opt:focus-visible, .for-you-item:focus-visible { outline:3px solid var(--green); outline-offset:2px; }
+@media (prefers-reduced-motion: reduce) { .match-card.flash { transition:none; } }
+.link-button { background:none; border:none; box-shadow:none; color:var(--blue); padding:8px 0 0; margin:0; font-size:.9rem; text-decoration:underline; width:auto; }
+.link-button:hover { background:none; transform:none; }
+.setup-error { position:fixed; inset:0; z-index:9999; display:flex; align-items:center; justify-content:center; padding:24px;
+  background:var(--bg); color:var(--text); text-align:center; font-size:1rem; line-height:1.5; }
+.setup-error[hidden] { display:none; }
+.loading-note { color:var(--muted); padding:8px 0; }
+.chat-locked { padding:12px; color:var(--muted); font-size:.92rem; }
+</style>
+
+  </head>
+
+<body>
+  <!-- Schermata iniziale -->
+<div id="authScreen" class="auth-screen">
+  <div class="auth-card">
+    <div class="auth-logo">🎾</div>
+
+    <h1>PadelMatch</h1>
+    <p class="auth-subtitle">Organizza le tue partite di padel</p>
+
+    <div class="auth-tabs">
+      <button id="showLogin" class="auth-tab active" type="button">
+        Accedi
+      </button>
+
+      <button id="showRegister" class="auth-tab" type="button">
+        Registrati
+      </button>
+    </div>
+
+    <form id="loginForm" class="auth-form">
+      <label for="loginEmail">Email</label>
+      <input
+        id="loginEmail"
+        type="email"
+        placeholder="La tua email"
+        required
+      >
+
+      <label for="loginPassword">Password</label>
+      <input
+        id="loginPassword"
+        type="password"
+        placeholder="La tua password"
+        required
+      >
+
+      <button type="submit">Accedi</button>
+      <button id="forgotPassword" class="link-button" type="button">Password dimenticata?</button>
+    </form>
+
+    <form id="registerForm" class="auth-form" style="display: none;">
+      <label for="registerName">Nome (privato)</label>
+      <input
+        id="registerName"
+        type="text"
+        placeholder="Il tuo nome"
+      >
+
+      <label for="registerNickname">Nickname (lo vedono gli altri)</label>
+      <input
+        id="registerNickname"
+        type="text"
+        placeholder="Es. marco_drive"
+        maxlength="20"
+        pattern="[A-Za-z0-9_.\-]{3,20}"
+        title="3-20 caratteri: lettere, numeri, punto, trattino o underscore"
+        required
+      >
+
+      <label for="registerEmail">Email</label>
+      <input
+        id="registerEmail"
+        type="email"
+        placeholder="La tua email"
+        required
+      >
+
+      <label for="registerPassword">Password</label>
+      <input
+        id="registerPassword"
+        type="password"
+        placeholder="Almeno 6 caratteri"
+        minlength="6"
+        required
+      >
+
+      <button type="submit">Crea account</button>
+    </form>
+
+    <p id="authMessage" class="auth-message"></p>
+  </div>
+</div>
+
+  <div id="notification" class="notification" role="status" aria-live="polite"></div>
+  <div id="setupError" class="setup-error" hidden></div>
+
+  <header>
+    <div class="top-bar">
+      <button id="themeToggle" class="theme-btn" type="button">
+        Tema scuro
+      </button>
+    </div>
+
+<h1 style="display: flex; align-items: center; justify-content: center; gap: 14px; margin: 0 0 8px; font-size: 2.8rem; font-weight: 800; color: #ffffff;">
+  <svg width="60" height="60" viewBox="0 0 110 100" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink: 0;">
+    <!-- Pallina da padel allineata in alto a destra -->
+    <g transform="translate(68, 8)">
+      <circle cx="16" cy="16" r="14" fill="#ccff00" stroke="#082654" stroke-width="2"/>
+      <path d="M6 10 C12 12 13 18 10 24" stroke="#ffffff" stroke-width="2" stroke-linecap="round" fill="none"/>
+      <path d="M26 22 C20 20 19 14 22 8" stroke="#ffffff" stroke-width="2" stroke-linecap="round" fill="none"/>
+    </g>
+
+    <!-- Racchetta da Padel dritta e centrata -->
+    <g transform="translate(6, 4)">
+      <!-- Telaio racchetta -->
+      <path d="M20 34 C20 16 28 8 42 8 C56 8 64 16 64 34 C64 45 58 53 49 58 L49 62 L35 62 L35 58 C26 53 20 45 20 34 Z" fill="#0f172a" stroke="#38bdf8" stroke-width="2.5"/>
+      <!-- Piatto interno -->
+      <path d="M23 34 C23 18 30 11 42 11 C54 11 61 18 61 34 C61 43 56 50 48 54 L36 54 C28 50 23 43 23 34 Z" fill="#1e293b"/>
+
+      <!-- Dettaglio centrale fluo -->
+      <path d="M31 26 L42 37 L53 26" stroke="#10b981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+
+      <!-- Fori regolari ben visibili -->
+      <circle cx="37" cy="22" r="1.8" fill="#94a3b8"/>
+      <circle cx="42" cy="20" r="1.8" fill="#94a3b8"/>
+      <circle cx="47" cy="22" r="1.8" fill="#94a3b8"/>
+      <circle cx="32" cy="30" r="1.8" fill="#94a3b8"/>
+      <circle cx="37" cy="29" r="1.8" fill="#94a3b8"/>
+      <circle cx="42" cy="28" r="1.8" fill="#94a3b8"/>
+      <circle cx="47" cy="29" r="1.8" fill="#94a3b8"/>
+      <circle cx="52" cy="30" r="1.8" fill="#94a3b8"/>
+      <circle cx="32" cy="38" r="1.8" fill="#94a3b8"/>
+      <circle cx="37" cy="37" r="1.8" fill="#94a3b8"/>
+      <circle cx="42" cy="36" r="1.8" fill="#94a3b8"/>
+      <circle cx="47" cy="37" r="1.8" fill="#94a3b8"/>
+      <circle cx="52" cy="38" r="1.8" fill="#94a3b8"/>
+
+      <!-- Cuore a V -->
+      <path d="M38 55 L42 49 L46 55 Z" fill="#082654" stroke="#38bdf8" stroke-width="1.5" stroke-linejoin="round"/>
+
+      <!-- Manico con impugnatura bianca -->
+      <rect x="38.5" y="62" width="7" height="25" rx="2" fill="#ffffff"/>
+      <line x1="38.5" y1="67" x2="45.5" y2="69" stroke="#64748b" stroke-width="1.6"/>
+      <line x1="38.5" y1="73" x2="45.5" y2="75" stroke="#64748b" stroke-width="1.6"/>
+      <line x1="38.5" y1="79" x2="45.5" y2="81" stroke="#64748b" stroke-width="1.6"/>
+
+      <!-- Base manico e cordino rosso -->
+      <rect x="37.5" y="87" width="9" height="3" rx="1" fill="#0f172a"/>
+      <path d="M42 90 C42 94 39 96 37 94" stroke="#ef4444" stroke-width="2" stroke-linecap="round" fill="none"/>
+    </g>
+  </svg>
+  <span>PadelMatch</span>
+</h1>
+  
+
+
+    <p>Trova, crea e organizza le tue partite</p>
+  </header>
+
+  <main>
+  <section id="tab-profilo" class="app-tab">
+  <!-- Scheda Profilo Superiore stile Knowunity -->
+  <div class="know-profile-card">
+    <div class="know-avatar-wrap">
+      <div id="profileAvatar" class="avatar">?</div>
+      <label for="profilePhoto" class="know-avatar-edit">✏️</label>
+    </div>
+
+    <div class="know-user-info">
+      <div class="know-name-row">
+        <h2 id="profileName" class="know-name">Profilo non ancora salvato</h2>
+      </div>
+      <p id="profileSummary" class="know-handle">Completa i dati qui sotto</p>
+    </div>
+
+    <!-- Badge Statistiche e Info Pillola -->
+    <div class="know-badges-row">
+      <div class="know-pill"><span class="pill-icon">🔥</span> <span id="statCreated">0</span> Create</div>
+      <div class="know-pill"><span class="pill-icon">⚡</span> <span id="statJoined">0</span> Giocate</div>
+      <div class="know-pill"><span class="pill-icon">👥</span> <span id="statPlayers">0</span> Compagni</div>
+    </div>
+  </div>
+
+  <!-- Menu e Impostazioni stile Schede -->
+  <div class="know-section-title">TU</div>
+  <div class="know-menu-group">
+    <!-- Form Modifica Dati Integrato -->
+    <form id="profileForm">
+      <div class="know-form-grid">
+        <div>
+          <label for="userNickname">Nickname (lo vedono gli altri)</label>
+          <input id="userNickname" type="text" placeholder="Es. marco_drive" maxlength="20" pattern="[A-Za-z0-9_.\-]{3,20}" title="3-20 caratteri: lettere, numeri, punto, trattino o underscore" required>
+        </div>
+        <div>
+          <label for="userName">Nome (privato, lo vedi solo tu)</label>
+          <input id="userName" type="text" placeholder="Es. Marco Rossi">
+        </div>
+        <div>
+          <label for="userLevel">Livello</label>
+          <select id="userLevel" required>
+            <option value="Principiante">Principiante</option>
+            <option value="Intermedio" selected>Intermedio</option>
+            <option value="Avanzato">Avanzato</option>
+          </select>
+        </div>
+        <div>
+          <label for="userSide">Lato preferito</label>
+          <select id="userSide">
+            <option value="Sinistra, attacco">Sinistra, attacco</option>
+            <option value="Destra, costruzione">Destra, costruzione</option>
+            <option value="Entrambi i lati">Entrambi i lati</option>
+          </select>
+        </div>
+        <div>
+          <label for="userMood">Come ti piace giocare</label>
+          <select id="userMood">
+            <option value="Competitiva">Partite competitive</option>
+            <option value="Rilassata" selected>Partite rilassate</option>
+            <option value="Per imparare">Voglio imparare</option>
+          </select>
+        </div>
+        <div>
+          <label for="userCity">Dove giochi di solito</label>
+          <input id="userCity" type="text" placeholder="Es. Reggio Emilia">
+        </div>
+        <div style="display: none;">
+          <input id="profilePhoto" type="file" accept="image/*">
+        </div>
+      </div>
+      <button type="submit" style="margin-top: 14px; width: 100%;">Salva profilo</button>
+      <button id="removePhoto" class="remove-photo" type="button" style="margin-top: 8px; width: 100%;">Rimuovi foto</button>
+    </form>
+    <p id="profileMessage" class="message"></p>
+  </div>
+
+  <div class="know-section-title">QUANDO SEI LIBERO</div>
+  <div class="know-menu-group">
+    <p class="hint">Tocca i momenti in cui di solito puoi giocare. Li usiamo per proporti le partite giuste nella scheda Partite.</p>
+    <div id="availabilityGrid" class="avail-grid"></div>
+  </div>
+
+  <div class="know-section-title">DA VALUTARE</div>
+  <div class="know-menu-group">
+    <p class="hint">Dopo una partita dici chi si è presentato e com'era il livello. Serve a formare partite equilibrate e con gente affidabile.</p>
+    <div id="feedbackList"></div>
+  </div>
+
+  <div class="know-section-title">ACCOUNT</div>
+  <div class="know-menu-group">
+    <!-- Tasto Disconnetti -->
+    <button id="logoutBtn" class="know-menu-item logout" type="button">
+      <div class="know-item-left">
+        <span class="know-item-icon">🚪</span>
+        <span class="know-item-text">Disconnetti</span>
+      </div>
+      <span class="know-item-arrow">›</span>
+    </button>
+  </div>
+</section>
+
+
+    <section id="tab-crea" class="app-tab">
+     <h2>Crea una partita</h2>
+
+
+      <form id="matchForm">
+        <div class="grid">
+          <div>
+            <label for="newCity">Città</label>
+            <input id="newCity" type="text" placeholder="Es. Milano" required>
+          </div>
+
+          <div>
+            <label for="newClub">Circolo</label>
+            <input id="newClub" type="text" placeholder="Es. Padel Club Centro" required>
+          </div>
+
+          <div>
+            <label for="newAddress">Indirizzo del circolo</label>
+            <input id="newAddress" type="text" placeholder="Es. Via Roma 25" required>
+          </div>
+
+          <div>
+            <label for="newDate">Data</label>
+            <input id="newDate" type="date" required>
+          </div>
+
+          <div>
+            <label for="newTime">Ora</label>
+            <input id="newTime" type="time" required>
+          </div>
+
+          <div>
+            <label for="newLevel">Livello</label>
+            <select id="newLevel" required>
+              <option value="">Scegli il livello</option>
+              <option value="Principiante">Principiante</option>
+              <option value="Intermedio">Intermedio</option>
+              <option value="Avanzato">Avanzato</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="newPlayers">Posti totali</label>
+            <input id="newPlayers" type="number" min="2" max="4" value="4" required>
+          </div>
+
+          <div>
+            <label for="newMood">Tipo di partita</label>
+            <select id="newMood">
+              <option value="Rilassata">Rilassata</option>
+              <option value="Competitiva">Competitiva</option>
+              <option value="Per imparare">Per imparare</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="newNeedSide">Cerchi qualcuno per il lato</label>
+            <select id="newNeedSide">
+              <option value="">Indifferente</option>
+              <option value="Sinistra">Sinistra</option>
+              <option value="Destra">Destra</option>
+            </select>
+          </div>
+        </div>
+
+        <br>
+
+        <button type="submit">Pubblica partita</button>
+      </form>
+
+      <p id="formMessage" class="message"></p>
+    </section>
+
+    <section id="tab-cerca" class="app-tab">
+     <h2>Cerca e filtra partite</h2>
+
+
+      <div class="filters">
+        <input id="searchInput" type="text" placeholder="Cerca città, circolo o indirizzo">
+
+        <select id="levelFilter">
+          <option value="">Tutti i livelli</option>
+          <option value="Principiante">Principiante</option>
+          <option value="Intermedio">Intermedio</option>
+          <option value="Avanzato">Avanzato</option>
+        </select>
+
+        <select id="moodFilter">
+          <option value="">Tutti i tipi di partita</option>
+          <option value="Rilassata">Rilassata</option>
+          <option value="Competitiva">Competitiva</option>
+          <option value="Per imparare">Per imparare</option>
+        </select>
+
+        <div>
+          <label for="dateFilter">Filtra per data</label>
+          <input id="dateFilter" type="date">
+        </div>
+
+        <div>
+          <label for="dateRangeFilter">Periodo</label>
+          <select id="dateRangeFilter">
+            <option value="">Qualsiasi periodo</option>
+            <option value="today">Oggi</option>
+            <option value="tomorrow">Domani</option>
+            <option value="weekend">Questo weekend</option>
+          </select>
+        </div>
+      </div>
+
+      <br>
+
+      <button id="resetButton" class="secondary" type="button">
+        Mostra tutte
+      </button>
+    </section>
+
+    <section id="tab-partite" class="app-tab tab-active">
+     <div id="forYou" class="for-you"></div>
+
+     <h2>Partite disponibili</h2>
+
+      <div id="matches" class="matches"></div>
+
+      <p id="noResults" style="display: none; color: var(--muted);">
+        Nessuna partita in programma con questi filtri. Cambia i filtri oppure crea tu una partita dalla scheda Crea.
+      </p>
+    </section>
+         <section id="tab-social" class="app-tab tiktok-container">
+      <button id="openUploadBtn" class="tiktok-upload-btn" type="button">
+        Carica Reel
+      </button>
+
+      <!-- Icone laterali stile TikTok -->
+      <div class="tiktok-actions">
+        <button id="likeBtn" class="tiktok-action-btn" type="button" aria-pressed="false">
+          ❤️<span id="likeCount">0</span>
+        </button>
+        <button class="tiktok-action-btn" type="button">
+          💬<span>0</span>
+        </button>
+        <button class="tiktok-action-btn" type="button">
+          ↗️<span>Share</span>
+        </button>
+      </div>
+
+      <div id="socialFeed" class="tiktok-feed">
+        <div class="tiktok-card">
+          <div class="tiktok-video-placeholder">
+            <p style="font-size: 2.5rem; margin: 0 0 10px 0;">🎾</p>
+            <p>Nessun video ancora.<br>Carica il primo Reel con il tasto in alto!</p>
+          </div>
+          <div class="tiktok-overlay">
+            <div class="tiktok-info">
+              <h3>@padelmatch</h3>
+              <p>Benvenuto nei Reel di PadelMatch! 🔥</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <input id="socialVideo" type="file" accept="video/*" style="display: none;">
+    </section>
+
+
+
+  </main>
+  <!-- Barra di navigazione fissa in basso stile App -->
+<nav class="bottom-nav">
+  <button class="nav-item active" data-tab="tab-partite" type="button">
+    <span class="nav-icon"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M12 5v14M3 12h18"/></svg></span>
+    <span class="nav-label">Partite</span>
+  </button>
+  <button class="nav-item" data-tab="tab-cerca" type="button">
+    <span class="nav-icon"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg></span>
+    <span class="nav-label">Cerca</span>
+  </button>
+  <button class="nav-item" data-tab="tab-crea" type="button">
+    <span class="nav-icon"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg></span>
+    <span class="nav-label">Crea</span>
+  </button>
+     <button class="nav-item" data-tab="tab-social">
+      <span class="nav-icon"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M5.6 5.6c3.4 3 3.4 9.8 0 12.8"/><path d="M18.4 5.6c-3.4 3-3.4 9.8 0 12.8"/></svg></span>
+      <span class="nav-label">Social</span>
+    </button>
+
+  <button class="nav-item" data-tab="tab-profilo" type="button">
+    <span class="nav-icon"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c1-4 4-6 8-6s7 2 8 6"/></svg></span>
+    <span class="nav-label">Profilo</span>
+  </button>
+</nav>
+
+
+  <div id="editModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Modifica partita</h2>
+
+        <button id="closeModal" class="close-modal" type="button">
+          Chiudi
+        </button>
+      </div>
+
+      <form id="editForm">
+        <input id="editId" type="hidden">
+
+        <div class="grid">
+          <div>
+            <label for="editCity">Città</label>
+            <input id="editCity" type="text" required>
+          </div>
+
+          <div>
+            <label for="editClub">Circolo</label>
+            <input id="editClub" type="text" required>
+          </div>
+
+          <div>
+            <label for="editAddress">Indirizzo</label>
+            <input id="editAddress" type="text" required>
+          </div>
+
+          <div>
+            <label for="editDate">Data</label>
+            <input id="editDate" type="date" required>
+          </div>
+
+          <div>
+            <label for="editTime">Ora</label>
+            <input id="editTime" type="time" required>
+          </div>
+
+          <div>
+            <label for="editLevel">Livello</label>
+            <select id="editLevel" required>
+              <option value="Principiante">Principiante</option>
+              <option value="Intermedio">Intermedio</option>
+              <option value="Avanzato">Avanzato</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="editPlayers">Posti totali</label>
+            <input id="editPlayers" type="number" min="2" max="4" required>
+          </div>
+
+          <div>
+            <label for="editMood">Tipo di partita</label>
+            <select id="editMood">
+              <option value="Rilassata">Rilassata</option>
+              <option value="Competitiva">Competitiva</option>
+              <option value="Per imparare">Per imparare</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="editNeedSide">Cerchi qualcuno per il lato</label>
+            <select id="editNeedSide">
+              <option value="">Indifferente</option>
+              <option value="Sinistra">Sinistra</option>
+              <option value="Destra">Destra</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button type="submit">Salva modifiche</button>
+
+          <button id="cancelEdit" class="secondary" type="button">
+            Annulla
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+
+
+  <div id="mapModal" class="map-modal">
+    <div class="map-modal-panel" role="dialog" aria-modal="true" aria-labelledby="mapModalTitle">
+      <div class="map-modal-head">
+        <div>
+          <h3 id="mapModalTitle"></h3>
+          <p id="mapModalAddr"></p>
+        </div>
+        <button id="mapModalClose" class="map-modal-close" type="button" aria-label="Chiudi mappa">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
+      </div>
+      <div id="popupMap"></div>
+      <div class="map-modal-foot">
+        <a id="mapDirections" class="map-directions" target="_blank" rel="noopener">Indicazioni stradali</a>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha384-cxOPjt7s7Iz04uaHJceBmS+qpjv2JkIHNVcuOrM+YHwZOmJGBXI00mdUXEq65HTH"
+    crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.js"
+    integrity="sha384-BWcjm9OdFth9TbhCxZPdm+gAOUMAzQy9nmTs12ioXdCcbVnJaPMn+fMUoQCLt60R"
+    crossorigin="anonymous"></script>
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
